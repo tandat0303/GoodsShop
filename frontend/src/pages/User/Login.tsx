@@ -3,7 +3,7 @@ import * as yup from "yup";
 import { AppAlert } from "../../components/ui/AppAlert";
 import { getApiErrorMessage } from "../../libs/helper";
 import { Player } from "@lottiefiles/react-lottie-player";
-import Logo from "../../assets/icons/Logo.png";
+import Logo from "../../assets/icons/logo.png";
 import loadingAnimation from "../../assets/lotties/login-animation.json";
 import type { AuthPayload, LoginFormValue } from "../../types/features/auth";
 import authApi from "../../api/features/auth";
