@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-alert-popup .swal2-title {
+  font-size: 14px;
+}
+.app-alert-popup .swal2-icon {
+  font-size: 14px;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d9ee;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a8b4d0;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #30363d;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #484f58;
+}
+
+.sidebar-transition {
+  transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sider-transition {
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
