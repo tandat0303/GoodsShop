@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, SlidersHorizontal, Star, X } from "lucide-react";
 import type {
   ProductFilterState,
   SortOption,
 } from "../../../types/features/product";
-import { BRANDS, CATEGORIES, SORT_OPTIONS } from "../../../libs/constance";
+import type { Category } from "../../../types/features/category";
+import type { Brand } from "../../../types/features/brand";
+import { SORT_OPTIONS } from "../../../libs/constance";
+import categoryApi from "../../../api/features/category";
+import brandApi from "../../../api/features/brand";
 
 interface ProductFiltersProps {
   filters: ProductFilterState;
@@ -18,6 +22,19 @@ export default function ProductFilters({
   resultCount,
 }: ProductFiltersProps) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+
+  useEffect(() => {
+    categoryApi
+      .getCategories(1, 100)
+      .then((res) => setCategories(res?.data ?? []))
+      .catch(() => setCategories([]));
+    brandApi
+      .getBrands(1, 100)
+      .then((res) => setBrands(res?.data ?? []))
+      .catch(() => setBrands([]));
+  }, []);
 
   const set = <K extends keyof ProductFilterState>(
     key: K,
@@ -100,17 +117,27 @@ export default function ProductFilters({
 
       {/* Category pills */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-        {CATEGORIES.map((cat) => (
+        <button
+          onClick={() => set("category", "all")}
+          className={`shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors cursor-pointer ${
+            filters.category === "all"
+              ? "bg-indigo-500 text-white"
+              : "bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10"
+          }`}
+        >
+          Tất cả
+        </button>
+        {categories.map((cat) => (
           <button
-            key={cat}
-            onClick={() => set("category", cat)}
+            key={cat.id}
+            onClick={() => set("category", cat.id)}
             className={`shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors cursor-pointer ${
-              filters.category === cat
+              filters.category === cat.id
                 ? "bg-indigo-500 text-white"
                 : "bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10"
             }`}
           >
-            {cat}
+            {cat.name}
           </button>
         ))}
       </div>
@@ -191,17 +218,17 @@ export default function ProductFilters({
               Thương hiệu
             </span>
             <div className="flex flex-wrap gap-1.5">
-              {BRANDS.map((brand) => (
+              {brands.map((brand) => (
                 <button
-                  key={brand}
-                  onClick={() => toggleBrand(brand)}
+                  key={brand.id}
+                  onClick={() => toggleBrand(brand.id)}
                   className={`rounded-full border px-2.5 py-1.5 text-[12px] font-medium transition-colors cursor-pointer ${
-                    filters.brands.includes(brand)
+                    filters.brands.includes(brand.id)
                       ? "border-indigo-400 bg-indigo-500/10 text-indigo-600 dark:text-indigo-300"
                       : "border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
                   }`}
                 >
-                  {brand}
+                  {brand.name}
                 </button>
               ))}
             </div>

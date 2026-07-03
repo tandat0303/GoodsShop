@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { HomeOutlined, ProductOutlined, TeamOutlined } from "@ant-design/icons";
+import {
+  HomeOutlined,
+  InsertRowBelowOutlined,
+  ProductOutlined,
+  SlackOutlined,
+  TeamOutlined,
+} from "@ant-design/icons";
 import { useLocation, useNavigate } from "react-router-dom";
 import Logo from "../../../assets/icons/logo.png";
 import { SIDEBAR_COLLAPSED, SIDEBAR_EXPANDED } from "../../../libs/constance";
@@ -30,6 +36,18 @@ const menuItems: MenuItem[] = [
     path: "/admin/products-mgmt",
     icon: <ProductOutlined size={16} />,
     label: "Sản phẩm",
+  },
+  {
+    key: "categories-mgmt",
+    path: "/admin/categories-mgmt",
+    icon: <InsertRowBelowOutlined size={16} />,
+    label: "Danh mục",
+  },
+  {
+    key: "brands-mgmt",
+    path: "/admin/brands-mgmt",
+    icon: <SlackOutlined size={16} />,
+    label: "Thương hiệu",
   },
   {
     key: "users-mgmt",

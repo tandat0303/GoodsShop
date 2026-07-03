@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, PackageSearch } from "lucide-react";
 import type {
   Product,
@@ -6,19 +6,43 @@ import type {
 } from "../../../types/features/product";
 import ProductCard from "./ProductCard";
 import ProductFilters from "./ProductFilters";
-import { INITIAL_FILTERS } from "../../../libs/constance";
+import { FEATURED_FETCH_SIZE, INITIAL_FILTERS } from "../../../libs/constance";
+import productApi from "../../../api/features/product";
+import { AppAlert } from "../../../components/ui/AppAlert";
+import { getApiErrorMessage } from "../../../libs/helper";
 
 interface ProductListProps {
-  products: Product[];
   pageSize?: number;
 }
 
-export default function ProductList({
-  products,
-  pageSize = 8,
-}: ProductListProps) {
+export default function ProductList({ pageSize = 8 }: ProductListProps) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState<ProductFilterState>(INITIAL_FILTERS);
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      setLoading(true);
+      try {
+        const res = await productApi.getProducts(1, FEATURED_FETCH_SIZE);
+        const featured = (res?.data ?? []).filter(
+          (p: Product) => p.featured && p.isActive,
+        );
+        setProducts(featured);
+      } catch (err) {
+        AppAlert({
+          icon: "error",
+          title:
+            (await getApiErrorMessage(err)) ||
+            "Không thể tải danh sách sản phẩm nổi bật",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFeatured();
+  }, []);
 
   const filtered = useMemo(() => {
     let result = products.filter((p) => {
@@ -27,15 +51,15 @@ export default function ProductList({
         !p.name.toLowerCase().includes(filters.search.toLowerCase())
       )
         return false;
-      if (filters.category !== "Tất cả" && p.category !== filters.category)
+      if (filters.category !== "all" && p.category.id !== filters.category)
         return false;
       if (filters.priceMin !== null && p.price < filters.priceMin) return false;
       if (filters.priceMax !== null && p.price > filters.priceMax) return false;
       if (filters.minRating !== null && p.rating < filters.minRating)
         return false;
-      if (filters.brands.length > 0 && !filters.brands.includes(p.brand))
+      if (filters.brands.length > 0 && !filters.brands.includes(p.brand.id))
         return false;
-      if (filters.inStockOnly && !p.inStock) return false;
+      if (filters.inStockOnly && p.stock <= 0) return false;
       return true;
     });
 
@@ -89,7 +113,23 @@ export default function ProductList({
         resultCount={filtered.length}
       />
 
-      {pageItems.length === 0 ? (
+      {loading ? (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+          {Array.from({ length: pageSize }).map((_, i) => (
+            <div
+              key={i}
+              className="flex aspect-[3/4.2] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-[#1a1d24]"
+            >
+              <div className="aspect-square w-full animate-pulse bg-slate-100 dark:bg-white/5" />
+              <div className="flex flex-1 flex-col gap-2 p-3">
+                <div className="h-3 w-1/3 animate-pulse rounded bg-slate-100 dark:bg-white/5" />
+                <div className="h-3.5 w-full animate-pulse rounded bg-slate-100 dark:bg-white/5" />
+                <div className="h-3.5 w-2/3 animate-pulse rounded bg-slate-100 dark:bg-white/5" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : pageItems.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 py-16 text-slate-400 dark:border-white/10">
           <PackageSearch size={28} />
           <span className="text-sm">Không tìm thấy sản phẩm phù hợp</span>

@@ -16,6 +16,8 @@ export const DURATION = "0.28s";
 
 export const PAGE_SIZE = 10;
 
+export const FEATURED_FETCH_SIZE = 100;
+
 export const NAV_ITEMS = [{ path: "/", label: "Trang chủ" }];
 
 export const LINK_COLUMNS: { title: string; links: string[] }[] = [
@@ -58,7 +60,7 @@ export const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 
 export const INITIAL_FILTERS: ProductFilterState = {
   search: "",
-  category: "Tất cả",
+  category: "all",
   sort: "popular",
   priceMin: null,
   priceMax: null,
@@ -70,6 +72,8 @@ export const INITIAL_FILTERS: ProductFilterState = {
 export const ADMIN_PAGE_TITLES: Record<string, string> = {
   "/admin": "Trang chủ",
   "/admin/products-mgmt": "Sản phẩm",
+  "/admin/categories-mgmt": "Danh mục",
+  "/admin/brands-mgmt": "Thương hiệu",
   "/admin/users-mgmt": "Người dùng",
 };
 

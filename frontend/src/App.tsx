@@ -10,8 +10,10 @@ import AdminLogin from "./pages/Admin/AdminLogin";
 import Dashboard from "./pages/Admin/Dashboard";
 import AdminProtectedRoute from "./routes/AdminProtectedRoute";
 import AdminMainLayout from "./pages/Admin/layout/AdminMainLayout";
-import ProductsManagement from "./pages/Admin/main/ProductsManagement";
+import ProductsManagement from "./pages/Admin/main/Products/ProductsManagement";
 import UsersManagement from "./pages/Admin/main/UsersManagement";
+import CategoryManagement from "./pages/Admin/main/CategoryManagement";
+import BrandManagement from "./pages/Admin/main/BrandManagement";
 
 export default function App() {
   return (
@@ -33,6 +35,11 @@ export default function App() {
               path="/admin/products-mgmt"
               element={<ProductsManagement />}
             />
+            <Route
+              path="/admin/categories-mgmt"
+              element={<CategoryManagement />}
+            />
+            <Route path="/admin/brands-mgmt" element={<BrandManagement />} />
             <Route path="/admin/users-mgmt" element={<UsersManagement />} />
           </Route>
         </Route>

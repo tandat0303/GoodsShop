@@ -9,6 +9,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const [wishlisted, setWishlisted] = useState(false);
+  const inStock = product.stock > 0;
   const discount = product.originalPrice
     ? Math.round(100 - (product.price / product.originalPrice) * 100)
     : null;
@@ -34,7 +35,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               -{discount}%
             </span>
           )}
-          {!product.inStock && (
+          {!inStock && (
             <span className="rounded-full bg-slate-700 px-2 py-0.5 text-[10px] font-bold text-white">
               Hết hàng
             </span>
@@ -55,7 +56,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
       <div className="flex flex-1 flex-col gap-1.5 p-3">
         <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
-          {product.brand}
+          {product.brand.name}
         </span>
         <h3 className="line-clamp-2 text-[13px] font-semibold leading-snug text-slate-800 dark:text-white">
           {product.name}
@@ -83,11 +84,11 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
 
         <button
-          disabled={!product.inStock}
+          disabled={!inStock}
           className="mt-2 flex items-center justify-center gap-1.5 rounded-full bg-indigo-500 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 dark:disabled:bg-white/10 dark:disabled:text-slate-500 cursor-pointer"
         >
           <ShoppingCart size={14} />
-          {product.inStock ? "Thêm vào giỏ" : "Hết hàng"}
+          {inStock ? "Thêm vào giỏ" : "Hết hàng"}
         </button>
       </div>
     </div>

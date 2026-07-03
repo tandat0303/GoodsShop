@@ -6,7 +6,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: ['*', 'https://goods-shop-v1.vercel.app'],
+    origin: [
+      'http://localhost:5173',
+      'http://192.168.1.82:5173',
+      'https://goods-shop-v1.vercel.app',
+    ],
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: 'Content-Type, Authorization',
