@@ -25,6 +25,8 @@ model User {
 
   role      String
 
+  orders    Order[]
+
   createdAt DateTime @default(now())
 }
 
@@ -83,6 +85,60 @@ model Product {
 
   featured       Boolean  @default(false)
 
+  orderItems     OrderItem[]
+
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+enum OrderStatus {
+  CART
+  PENDING
+  CONFIRMED
+  SHIPPING
+  COMPLETED
+  CANCELLED
+}
+
+model Order {
+  id            String      @id @default(cuid())
+
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+
+  status        OrderStatus @default(CART)
+
+  isPaid        Boolean     @default(false)
+  paidAt        DateTime?
+
+  totalAmount   Decimal     @default(0) @db.Decimal(12,2)
+
+  note          String?
+
+  shippingName  String?
+  shippingPhone String?
+  shippingAddr  String?
+
+  items         OrderItem[]
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+
+  quantity  Int      @default(1)
+  price     Decimal  @db.Decimal(12,2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([orderId, productId])
 }

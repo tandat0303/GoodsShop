@@ -14,6 +14,7 @@ import { CategoriesModule } from './api/category/categories.module';
 import { BrandsModule } from './api/brand/brands.module';
 import { CloudinaryModule } from './api/cloudinary/cloudinary.module';
 import { UploadModule } from './api/upload/upload.module';
+import { OrdersModule } from './api/order/orders.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { UploadModule } from './api/upload/upload.module';
     UsersModule,
     ConfigModule,
     PrismaModule,
+    OrdersModule,
     ProductsModule,
     CategoriesModule,
     BrandsModule,

@@ -1,3 +1,4 @@
+import type { OrderStatus } from "../types/features/order";
 import type {
   BannerSlide,
   ProductFilterState,
@@ -118,14 +119,43 @@ export const BANNER_SLIDES: BannerSlide[] = [
   },
 ];
 
-export const CATEGORIES = [
-  "Tất cả",
-  "Điện tử",
-  "Thời trang",
-  "Gia dụng",
-  "Làm đẹp",
-  "Thể thao",
-  "Sách",
+export const STATUS_LABEL: Record<OrderStatus, string> = {
+  CART: "Giỏ hàng",
+  PENDING: "Chờ xác nhận",
+  CONFIRMED: "Đã xác nhận",
+  SHIPPING: "Đang giao",
+  COMPLETED: "Hoàn tất",
+  CANCELLED: "Đã hủy",
+};
+
+export const STATUS_STYLE: Record<OrderStatus, string> = {
+  CART: "bg-slate-100 text-slate-500 dark:bg-white/5 dark:text-slate-300",
+  PENDING:
+    "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400",
+  CONFIRMED:
+    "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400",
+  SHIPPING: "bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400",
+  COMPLETED:
+    "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400",
+  CANCELLED: "bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400",
+};
+
+export const STATUS_FILTER_OPTIONS: {
+  value: "all" | OrderStatus;
+  label: string;
+}[] = [
+  { value: "all", label: "Tất cả trạng thái" },
+  { value: "PENDING", label: STATUS_LABEL.PENDING },
+  { value: "CONFIRMED", label: STATUS_LABEL.CONFIRMED },
+  { value: "SHIPPING", label: STATUS_LABEL.SHIPPING },
+  { value: "COMPLETED", label: STATUS_LABEL.COMPLETED },
+  { value: "CANCELLED", label: STATUS_LABEL.CANCELLED },
 ];
 
-export const BRANDS = ["Good's Shop", "UrbanLine", "Nova", "Kraft", "Studio 9"];
+export const STATUS_SELECT_OPTIONS: OrderStatus[] = [
+  "PENDING",
+  "CONFIRMED",
+  "SHIPPING",
+  "COMPLETED",
+  "CANCELLED",
+];

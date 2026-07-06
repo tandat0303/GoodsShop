@@ -14,6 +14,8 @@ import ProductsManagement from "./pages/Admin/main/Products/ProductsManagement";
 import UsersManagement from "./pages/Admin/main/UsersManagement";
 import CategoryManagement from "./pages/Admin/main/CategoryManagement";
 import BrandManagement from "./pages/Admin/main/BrandManagement";
+import OrdersManagement from "./pages/Admin/main/Orders/OrdersManagement";
+import UserOrders from "./pages/User/Orders/UserOrders";
 
 export default function App() {
   return (
@@ -25,12 +27,15 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<MainLayout />}>
             <Route path="/" element={<Home />} />
+
+            <Route path="/cart" element={<UserOrders />} />
           </Route>
         </Route>
 
         <Route element={<AdminProtectedRoute />}>
           <Route element={<AdminMainLayout />}>
             <Route path="/admin" element={<Dashboard />} />
+            <Route path="/admin/orders-mgmt" element={<OrdersManagement />} />
             <Route
               path="/admin/products-mgmt"
               element={<ProductsManagement />}

@@ -3,6 +3,7 @@ import {
   HomeOutlined,
   InsertRowBelowOutlined,
   ProductOutlined,
+  ShoppingCartOutlined,
   SlackOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
@@ -30,6 +31,12 @@ const menuItems: MenuItem[] = [
     path: "/admin",
     icon: <HomeOutlined size={16} />,
     label: "Trang chủ",
+  },
+  {
+    key: "orders-mgmt",
+    path: "/admin/orders-mgmt",
+    icon: <ShoppingCartOutlined size={16} />,
+    label: "Đơn hàng",
   },
   {
     key: "products-mgmt",

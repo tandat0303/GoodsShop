@@ -22,6 +22,7 @@ import { NAV_ITEMS, TIME_UPDATE_INTERVAL } from "../../libs/constance";
 // import { NotificationContent } from "../../pages/ChangeRequest/NotificationContent";
 import { useTheme } from "../../contexts/ThemeContext";
 import Logo from "../../assets/icons/logo.png";
+import { useCart } from "../../contexts/CartContext";
 
 dayjs.extend(utc);
 
@@ -45,6 +46,8 @@ function useOnClickOutside<T extends HTMLElement>(
 
 export default function Header({ user }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
+  const { cartCount } = useCart();
+
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -257,18 +260,18 @@ export default function Header({ user }: HeaderProps) {
             )} */}
           </div>
 
-          <div className="relative" ref={bellRef}>
+          <div className="relative">
             <button
-              //   onClick={() => setBellOpen((o) => !o)}
-              aria-label="Notifications"
+              onClick={() => navigate("/cart")}
+              aria-label="Giỏ hàng"
               className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white cursor-pointer"
             >
               <ShoppingCart size={18} />
-              {/* {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-[#0B0F19]">
-                  {unreadCount > 99 ? "99+" : unreadCount}
+              {cartCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white dark:ring-[#24272f]">
+                  {cartCount > 99 ? "99+" : cartCount}
                 </span>
-              )} */}
+              )}
             </button>
           </div>
 

@@ -7,6 +7,7 @@ import { Send } from "lucide-react";
 import { useTheme } from "../../contexts/ThemeContext";
 import Logo from "../../assets/icons/logo.png";
 import { LINK_COLUMNS } from "../../libs/constance";
+import { AppAlert } from "../ui/AppAlert";
 
 const SOCIALS = [
   {
@@ -106,12 +107,13 @@ export default function Footer() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const [email, setEmail] = useState("");
-  const [subscribed, setSubscribed] = useState(false);
+  // const [subscribed, setSubscribed] = useState(false);
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe: React.SubmitEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
     if (!email) return;
-    setSubscribed(true);
+    // setSubscribed(true);
+    AppAlert({ icon: "success", title: "Cảm ơn bạn đã đăng ký!" });
     setEmail("");
   };
 
@@ -166,11 +168,11 @@ export default function Footer() {
                   Đăng ký
                 </button>
               </div>
-              {subscribed && (
+              {/* {subscribed && (
                 <span className="text-[12px] text-emerald-400">
                   Cảm ơn bạn đã đăng ký!
                 </span>
-              )}
+              )} */}
             </form>
           </div>
 

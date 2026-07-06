@@ -33,6 +33,7 @@ export class UsersService {
     if (raw.password !== password) return false;
 
     const user: UserPayload = {
+      id: raw.id,
       email: raw.email,
       fullName: raw.fullName,
       role: raw.role,

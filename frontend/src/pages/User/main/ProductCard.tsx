@@ -1,18 +1,43 @@
-import { Heart, ShoppingCart, Star } from "lucide-react";
+import { Heart, Loader2, ShoppingCart, Star } from "lucide-react";
 import type { Product } from "../../../types/features/product";
 import { useState } from "react";
-import { formatVnd } from "../../../libs/helper";
+import { formatVnd, getApiErrorMessage } from "../../../libs/helper";
+import orderApi from "../../../api/features/order";
+import { AppAlert } from "../../../components/ui/AppAlert";
+import { useCart } from "../../../contexts/CartContext";
 
 interface ProductCardProps {
   product: Product;
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const { refreshCart } = useCart();
+
   const [wishlisted, setWishlisted] = useState(false);
+  const [adding, setAdding] = useState(false);
   const inStock = product.stock > 0;
   const discount = product.originalPrice
     ? Math.round(100 - (product.price / product.originalPrice) * 100)
     : null;
+
+  const handleAddToCart = async () => {
+    setAdding(true);
+    try {
+      await orderApi.addToCart(product.id, 1);
+      await refreshCart();
+      AppAlert({
+        icon: "success",
+        title: `Đã thêm 1 ${product.name} vào giỏ hàng`,
+      });
+    } catch (err) {
+      AppAlert({
+        icon: "error",
+        title: (await getApiErrorMessage(err)) || "Không thể thêm vào giỏ hàng",
+      });
+    } finally {
+      setAdding(false);
+    }
+  };
 
   return (
     <div className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition-shadow hover:shadow-lg dark:border-white/10 dark:bg-[#1a1d24]">
@@ -84,10 +109,15 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
 
         <button
-          disabled={!inStock}
+          onClick={handleAddToCart}
+          disabled={!inStock || adding}
           className="mt-2 flex items-center justify-center gap-1.5 rounded-full bg-indigo-500 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 dark:disabled:bg-white/10 dark:disabled:text-slate-500 cursor-pointer"
         >
-          <ShoppingCart size={14} />
+          {adding ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            <ShoppingCart size={14} />
+          )}
           {inStock ? "Thêm vào giỏ" : "Hết hàng"}
         </button>
       </div>
