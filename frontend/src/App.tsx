@@ -1,7 +1,6 @@
 import Login from "./pages/User/Login";
-// import MainLayout from "./layout/MainLayout";
 import "./index.css";
-import { Route, Routes } from "react-router-dom";
+import { Outlet, Route, Routes } from "react-router-dom";
 import AuthBootstrap from "./routes/AuthBootstrap";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import Home from "./pages/User/Home";
@@ -16,6 +15,15 @@ import CategoryManagement from "./pages/Admin/main/CategoryManagement";
 import BrandManagement from "./pages/Admin/main/BrandManagement";
 import OrdersManagement from "./pages/Admin/main/Orders/OrdersManagement";
 import UserOrders from "./pages/User/Orders/UserOrders";
+import { CartProvider } from "./contexts/CartContext";
+
+function CartLayout() {
+  return (
+    <CartProvider>
+      <Outlet />
+    </CartProvider>
+  );
+}
 
 export default function App() {
   return (
@@ -25,10 +33,12 @@ export default function App() {
         <Route path="/admin/login" element={<AdminLogin />} />
 
         <Route element={<ProtectedRoute />}>
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<Home />} />
+          <Route element={<CartLayout />}>
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<Home />} />
 
-            <Route path="/cart" element={<UserOrders />} />
+              <Route path="/cart" element={<UserOrders />} />
+            </Route>
           </Route>
         </Route>
 
