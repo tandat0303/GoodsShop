@@ -12,8 +12,9 @@ import { Navigate, useNavigate } from "react-router-dom";
 import Loading from "../../components/ui/Loading";
 import { setToken } from "../../redux/features/authSlice";
 import { REQUIRED_MESSAGE } from "../../libs/constance";
-import { CircleUser, Eye, EyeOff, Lock } from "lucide-react";
+import { CircleUser, Eye, EyeOff, Lock, Moon, Sun } from "lucide-react";
 import Spinner from "../../components/ui/Spinner";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const loginSchema = yup.object({
   email: yup.string().required(REQUIRED_MESSAGE),
@@ -58,6 +59,8 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [navigating, setNavigating] = useState(false);
+
+  const { theme, toggleTheme } = useTheme();
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -206,6 +209,33 @@ export default function Login() {
         </div>
 
         <div className="w-full md:w-100 flex flex-col justify-center bg-white dark:bg-[#1c2333] px-8 sm:px-10 py-10 sm:py-14">
+          <div className="flex justify-center gap-2 mb-1 md:mb-2">
+            <span
+              className={`${theme === "light" ? "font-extrabold text-yellow-500" : "dark:text-white"}`}
+            >
+              Sáng
+            </span>
+            <button
+              onClick={toggleTheme}
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              title="Toggle theme"
+              className="relative h-6 w-11 shrink-0 cursor-pointer rounded-full border-[1.5px] border-amber-400/45 bg-amber-400/15 transition-colors duration-300 dark:border-violet-400/45 dark:bg-violet-400/20"
+            >
+              <span
+                className={`absolute top-1/2 flex h-4.5 w-4.5 -translate-y-1/2 items-center justify-center rounded-full bg-amber-500 text-white shadow-[0_2px_8px_rgba(245,158,11,0.5)] transition-[left] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] dark:bg-violet-600 dark:shadow-[0_2px_8px_rgba(124,58,237,0.55)] ${
+                  theme === "dark" ? "left-[calc(100%-19px)]" : "left-0.5"
+                }`}
+              >
+                {theme === "dark" ? <Moon size={11} /> : <Sun size={11} />}
+              </span>
+            </button>
+            <span
+              className={`${theme === "dark" ? "font-extrabold text-violet-500" : ""}`}
+            >
+              Tối
+            </span>
+          </div>
+
           <div className="mb-1 md:mb-4">
             <p className="hidden md:inline text-[11px] text-[#6366F1] font-semibold tracking-widest uppercase mb-1.5">
               Xác thực người dùng
