@@ -61,6 +61,11 @@ export class OrdersController {
     return this.ordersService.adminFindOne(id);
   }
 
+  @Patch('admin/:id/mark-paid')
+  adminMarkPaid(@Param('id') id: string) {
+    return this.ordersService.adminMarkPaid(id);
+  }
+
   @Patch('admin/:id/status')
   adminUpdateStatus(
     @Param('id') id: string,
@@ -79,8 +84,8 @@ export class OrdersController {
     return this.ordersService.findOne(req.id, id);
   }
 
-  @Post(':id/pay')
-  pay(@CurrentUser() req: any, @Param('id') id: string) {
-    return this.ordersService.payOrder(req.id, id);
-  }
+  // @Post(':id/pay')
+  // pay(@CurrentUser() req: any, @Param('id') id: string) {
+  //   return this.ordersService.payOrder(req.id, id);
+  // }
 }

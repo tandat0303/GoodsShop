@@ -1,6 +1,9 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsIn, IsOptional, IsString } from 'class-validator';
 
 export class CheckoutOrderDto {
+  @IsIn(['COD', 'VNPAY', 'BANK_TRANSFER'])
+  paymentMethod!: 'COD' | 'VNPAY' | 'BANK_TRANSFER';
+
   @IsOptional()
   @IsString()
   note?: string;

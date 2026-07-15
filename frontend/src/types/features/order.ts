@@ -25,6 +25,8 @@ export interface Order {
   status: OrderStatus;
   isPaid: boolean;
   paidAt?: string | null;
+  paymentMethod?: string | null;
+  paymentRef?: string | null;
   totalAmount: number;
   note?: string | null;
   shippingName?: string | null;
@@ -46,6 +48,7 @@ export interface AdminOrder extends Order {
 }
 
 export interface CheckoutPayload {
+  paymentMethod: "COD" | "VNPAY" | "BANK_TRANSFER";
   note?: string;
   shippingName?: string;
   shippingPhone?: string;

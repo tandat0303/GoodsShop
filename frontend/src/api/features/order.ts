@@ -60,10 +60,10 @@ const orderApi = {
     return res.data;
   },
 
-  pay: async (id: string): Promise<{ data: Order; message: string }> => {
-    const res = await apiClient.post(`/orders/${id}/pay`);
-    return res.data;
-  },
+  // pay: async (id: string): Promise<{ data: Order; message: string }> => {
+  //   const res = await apiClient.post(`/orders/${id}/pay`);
+  //   return res.data;
+  // },
 
   adminGetOrders: async (
     currentPage: number,
@@ -90,6 +90,13 @@ const orderApi = {
     const res = await apiClient.patch(`/orders/admin/${id}/status`, {
       status,
     });
+    return res.data;
+  },
+
+  adminMarkPaid: async (
+    id: string,
+  ): Promise<{ data: AdminOrder; message: string }> => {
+    const res = await apiClient.patch(`/orders/admin/${id}/mark-paid`);
     return res.data;
   },
 };

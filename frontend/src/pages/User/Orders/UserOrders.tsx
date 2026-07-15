@@ -11,9 +11,11 @@ import {
 } from "lucide-react";
 import type { Order } from "../../../types/features/order";
 import orderApi from "../../../api/features/order";
+import paymentApi from "../../../api/features/payment";
 import { AppAlert } from "../../../components/ui/AppAlert";
 import { getApiErrorMessage, formatVnd } from "../../../libs/helper";
 import { useCart } from "../../../contexts/CartContext";
+import { BANK_INFO } from "../../../utils/bankInfo";
 import { STATUS_LABEL, STATUS_STYLE } from "../../../libs/constance";
 
 type Tab = "cart" | "history";
@@ -33,6 +35,9 @@ export default function UserOrders() {
 
   const [checkingOut, setCheckingOut] = useState(false);
   const [payingId, setPayingId] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<
+    "COD" | "VNPAY" | "BANK_TRANSFER"
+  >("COD");
   const [shipping, setShipping] = useState({
     shippingName: "",
     shippingPhone: "",
@@ -118,7 +123,7 @@ export default function UserOrders() {
     if (!cart || cart.items.length === 0) return;
     setCheckingOut(true);
     try {
-      await orderApi.checkout(shipping);
+      await orderApi.checkout({ ...shipping, paymentMethod });
       AppAlert({ icon: "success", title: "Đặt hàng thành công" });
       setShipping({
         shippingName: "",
@@ -143,18 +148,16 @@ export default function UserOrders() {
   const handlePay = async (orderId: string) => {
     setPayingId(orderId);
     try {
-      const res = await orderApi.pay(orderId);
-      setHistory((prev) => prev.map((o) => (o.id === orderId ? res.data : o)));
-      AppAlert({
-        icon: "success",
-        title: res?.message || "Thanh toán thành công",
-      });
+      const res = await paymentApi.createVnpayPayment(orderId);
+      // Leaves the app — VNPay redirects back to /payment/result once
+      // the user finishes (or cancels) paying.
+      window.location.href = res.paymentUrl;
     } catch (err) {
       AppAlert({
         icon: "error",
-        title: (await getApiErrorMessage(err)) || "Thanh toán thất bại",
+        title:
+          (await getApiErrorMessage(err)) || "Không thể khởi tạo thanh toán",
       });
-    } finally {
       setPayingId(null);
     }
   };
@@ -320,6 +323,42 @@ export default function UserOrders() {
                 className="resize-none rounded-lg border border-slate-200 bg-transparent px-3 py-2 text-[13px] text-slate-700 outline-none focus:border-indigo-400 dark:border-white/10 dark:text-white"
               />
 
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[12px] font-semibold text-slate-600 dark:text-slate-300">
+                  Phương thức thanh toán
+                </span>
+                <label className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-[13px] text-slate-700 dark:border-white/10 dark:text-white cursor-pointer has-checked:border-indigo-400 has-checked:bg-indigo-50/50 dark:has-checked:bg-white/5">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    checked={paymentMethod === "COD"}
+                    onChange={() => setPaymentMethod("COD")}
+                    className="accent-indigo-500"
+                  />
+                  Thanh toán khi nhận hàng (COD)
+                </label>
+                <label className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-[13px] text-slate-700 dark:border-white/10 dark:text-white cursor-pointer has-checked:border-indigo-400 has-checked:bg-indigo-50/50 dark:has-checked:bg-white/5">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    checked={paymentMethod === "VNPAY"}
+                    onChange={() => setPaymentMethod("VNPAY")}
+                    className="accent-indigo-500"
+                  />
+                  Thanh toán online qua VNPay
+                </label>
+                <label className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-[13px] text-slate-700 dark:border-white/10 dark:text-white cursor-pointer has-checked:border-indigo-400 has-checked:bg-indigo-50/50 dark:has-checked:bg-white/5">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    checked={paymentMethod === "BANK_TRANSFER"}
+                    onChange={() => setPaymentMethod("BANK_TRANSFER")}
+                    className="accent-indigo-500"
+                  />
+                  Chuyển khoản QR (VietQR)
+                </label>
+              </div>
+
               <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-sm dark:border-white/10">
                 <span className="text-slate-500 dark:text-slate-400">
                   Tổng cộng
@@ -377,11 +416,23 @@ export default function UserOrders() {
                     >
                       {STATUS_LABEL[order.status]}
                     </span>
-                    {order.status === "CONFIRMED" && !order.isPaid && (
-                      <span className="rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-semibold text-red-500 dark:bg-red-950/40 dark:text-red-400">
-                        Cần thanh toán
+                    {order.paymentMethod === "COD" && (
+                      <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
+                        COD
                       </span>
                     )}
+                    {order.paymentMethod === "BANK_TRANSFER" && (
+                      <span className="rounded-full bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-600 dark:bg-sky-950/40 dark:text-sky-400">
+                        VietQR
+                      </span>
+                    )}
+                    {order.status === "CONFIRMED" &&
+                      !order.isPaid &&
+                      order.paymentMethod !== "COD" && (
+                        <span className="rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-semibold text-red-500 dark:bg-red-950/40 dark:text-red-400">
+                          Cần thanh toán
+                        </span>
+                      )}
                     <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
                       {formatVnd(order.totalAmount)}
                     </span>
@@ -430,22 +481,64 @@ export default function UserOrders() {
                                 ? ` · ${new Date(order.paidAt).toLocaleString("vi-VN")}`
                                 : ""
                             }`
-                          : "Chưa thanh toán"}
+                          : order.paymentMethod === "COD"
+                            ? "Thanh toán khi nhận hàng (COD)"
+                            : order.paymentMethod === "BANK_TRANSFER"
+                              ? "Chờ xác nhận chuyển khoản"
+                              : "Chưa thanh toán"}
                       </span>
 
-                      {order.status === "CONFIRMED" && !order.isPaid && (
-                        <button
-                          onClick={() => handlePay(order.id)}
-                          disabled={payingId === order.id}
-                          className="flex items-center gap-1.5 rounded-full bg-indigo-500 px-3.5 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
-                        >
-                          {payingId === order.id && (
-                            <Loader2 size={12} className="animate-spin" />
-                          )}
-                          Thanh toán ngay
-                        </button>
-                      )}
+                      {order.status === "CONFIRMED" &&
+                        !order.isPaid &&
+                        order.paymentMethod === "VNPAY" && (
+                          <button
+                            onClick={() => handlePay(order.id)}
+                            disabled={payingId === order.id}
+                            className="flex items-center gap-1.5 rounded-full bg-indigo-500 px-3.5 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+                          >
+                            {payingId === order.id && (
+                              <Loader2 size={12} className="animate-spin" />
+                            )}
+                            Thanh toán ngay
+                          </button>
+                        )}
                     </div>
+
+                    {order.status === "CONFIRMED" &&
+                      !order.isPaid &&
+                      order.paymentMethod === "BANK_TRANSFER" && (
+                        <div className="mt-1 flex flex-col items-center gap-3 rounded-xl border border-dashed border-slate-200 p-4 text-center dark:border-white/10 sm:flex-row sm:items-start sm:text-left">
+                          <img
+                            src={BANK_INFO.qrImage}
+                            alt="Mã QR chuyển khoản"
+                            className="h-70 w-70 shrink-0 rounded-lg border border-slate-100 object-contain dark:border-white/10"
+                          />
+                          <div className="flex flex-col gap-1 text-[13px]">
+                            <p className="font-semibold text-slate-700 dark:text-white">
+                              Quét mã để chuyển khoản
+                            </p>
+                            <p className="text-slate-500 dark:text-slate-300">
+                              Ngân hàng: {BANK_INFO.bankName}
+                            </p>
+                            <p className="text-slate-500 dark:text-slate-300">
+                              Số tài khoản: {BANK_INFO.accountNumber}
+                            </p>
+                            <p className="text-slate-500 dark:text-slate-300">
+                              Chủ tài khoản: {BANK_INFO.accountHolder}
+                            </p>
+                            <p className="text-slate-500 dark:text-slate-300">
+                              Số tiền: {formatVnd(order.totalAmount)}
+                            </p>
+                            <p className="text-slate-500 dark:text-slate-300">
+                              Nội dung CK: DH{order.id.slice(-8).toUpperCase()}
+                            </p>
+                            <p className="mt-1 text-[11px] text-slate-400">
+                              Sau khi chuyển khoản, đơn hàng sẽ được xác nhận
+                              trong ít phút.
+                            </p>
+                          </div>
+                        </div>
+                      )}
                   </div>
                 )}
               </div>

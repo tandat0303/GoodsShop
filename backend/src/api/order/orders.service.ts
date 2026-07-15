@@ -152,6 +152,7 @@ export class OrdersService {
         where: { id: cart.id },
         data: {
           status: OrderStatus.PENDING,
+          paymentMethod: dto.paymentMethod,
           note: dto.note,
           shippingName: dto.shippingName,
           shippingPhone: dto.shippingPhone,
@@ -207,9 +208,40 @@ export class OrdersService {
     return this.toResponse(order);
   }
 
-  async payOrder(userId: string, id: string) {
+  // async payOrder(userId: string, id: string) {
+  //   const order = await this.prisma.order.findFirst({ where: { id, userId } });
+  //   if (!order) throw new NotFoundException('Không tìm thấy đơn hàng');
+  //   if (order.status !== OrderStatus.CONFIRMED) {
+  //     throw new BadRequestException(
+  //       'Đơn hàng cần được xác nhận trước khi thanh toán',
+  //     );
+  //   }
+  //   if (order.isPaid) {
+  //     throw new BadRequestException('Đơn hàng đã được thanh toán');
+  //   }
+
+  //   const updated = await this.prisma.order.update({
+  //     where: { id },
+  //     data: { isPaid: true, paidAt: new Date() },
+  //     include: ORDER_INCLUDE,
+  //   });
+
+  //   return { data: this.toResponse(updated), message: 'Thanh toán thành công' };
+  // }
+
+  /**
+   * Fetches an order and validates it's actually payable, before a
+   * payment gateway URL is created. Throws if it doesn't belong to the
+   * user, isn't confirmed yet, or has already been paid.
+   */
+  async getPayableOrder(userId: string, id: string) {
     const order = await this.prisma.order.findFirst({ where: { id, userId } });
     if (!order) throw new NotFoundException('Không tìm thấy đơn hàng');
+    if (order.paymentMethod === 'COD') {
+      throw new BadRequestException(
+        'Đơn hàng thanh toán khi nhận hàng (COD), không cần thanh toán online',
+      );
+    }
     if (order.status !== OrderStatus.CONFIRMED) {
       throw new BadRequestException(
         'Đơn hàng cần được xác nhận trước khi thanh toán',
@@ -218,14 +250,30 @@ export class OrdersService {
     if (order.isPaid) {
       throw new BadRequestException('Đơn hàng đã được thanh toán');
     }
+    return order;
+  }
+
+  /**
+   * Marks an order as paid. Only ever called from the payments module
+   * after a gateway signature has been verified (IPN, or a verified
+   * return-URL as a fallback) — never directly from client input.
+   */
+  async markPaid(id: string, method: string, ref?: string) {
+    const order = await this.prisma.order.findUnique({ where: { id } });
+    if (!order) throw new NotFoundException('Không tìm thấy đơn hàng');
+    if (order.isPaid) return this.toResponse(order); // idempotent: IPN may fire more than once
 
     const updated = await this.prisma.order.update({
       where: { id },
-      data: { isPaid: true, paidAt: new Date() },
+      data: {
+        isPaid: true,
+        paidAt: new Date(),
+        paymentMethod: method,
+        paymentRef: ref,
+      },
       include: ORDER_INCLUDE,
     });
-
-    return { data: this.toResponse(updated), message: 'Thanh toán thành công' };
+    return this.toResponse(updated);
   }
 
   // ---------- Admin ----------
@@ -284,6 +332,25 @@ export class OrdersService {
     return this.toResponse(order);
   }
 
+  async adminMarkPaid(id: string) {
+    const existing = await this.prisma.order.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Không tìm thấy đơn hàng');
+    if (existing.status === OrderStatus.CART) {
+      throw new BadRequestException(
+        'Không thể xác nhận thanh toán cho giỏ hàng',
+      );
+    }
+    if (existing.isPaid) {
+      throw new BadRequestException('Đơn hàng đã được thanh toán');
+    }
+
+    await this.markPaid(id, existing.paymentMethod ?? 'BANK_TRANSFER');
+    return {
+      data: await this.adminFindOne(id),
+      message: 'Đã xác nhận thanh toán',
+    };
+  }
+
   async adminUpdateStatus(id: string, status: OrderStatus) {
     const existing = await this.prisma.order.findUnique({
       where: { id },
@@ -293,11 +360,20 @@ export class OrdersService {
     if (existing.status === OrderStatus.CART) {
       throw new BadRequestException('Không thể cập nhật trạng thái giỏ hàng');
     }
-    if (status === OrderStatus.COMPLETED && !existing.isPaid) {
+    const isCodAutoPay =
+      status === OrderStatus.COMPLETED &&
+      existing.paymentMethod === 'COD' &&
+      !existing.isPaid;
+
+    if (status === OrderStatus.COMPLETED && !existing.isPaid && !isCodAutoPay) {
       throw new BadRequestException(
         'Đơn hàng chưa được thanh toán, không thể hoàn tất',
       );
     }
+
+    const statusData = isCodAutoPay
+      ? { status, isPaid: true, paidAt: new Date() }
+      : { status };
 
     const isCancelling =
       status === OrderStatus.CANCELLED &&
@@ -314,10 +390,10 @@ export class OrdersService {
             },
           }),
         ),
-        this.prisma.order.update({ where: { id }, data: { status } }),
+        this.prisma.order.update({ where: { id }, data: statusData }),
       ]);
     } else {
-      await this.prisma.order.update({ where: { id }, data: { status } });
+      await this.prisma.order.update({ where: { id }, data: statusData });
     }
 
     return {

@@ -1,4 +1,5 @@
-import { X } from "lucide-react";
+import { useState } from "react";
+import { Loader2, X } from "lucide-react";
 import type { AdminOrder } from "../../../../types/features/order";
 import { formatDate, formatVnd } from "../../../../libs/helper";
 import { STATUS_LABEL, STATUS_STYLE } from "../../../../libs/constance";
@@ -6,10 +7,24 @@ import { STATUS_LABEL, STATUS_STYLE } from "../../../../libs/constance";
 export default function OrderDetail({
   order,
   onClose,
+  onMarkPaid,
 }: {
   order: AdminOrder;
   onClose: () => void;
+  onMarkPaid?: (order: AdminOrder) => Promise<void> | void;
 }) {
+  const [marking, setMarking] = useState(false);
+
+  const handleMarkPaid = async () => {
+    if (!onMarkPaid) return;
+    setMarking(true);
+    try {
+      await onMarkPaid(order);
+    } finally {
+      setMarking(false);
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 z-200 flex items-center justify-center bg-black/40 px-4 py-8 overflow-y-auto"
@@ -53,8 +68,31 @@ export default function OrderDetail({
             >
               {order.isPaid
                 ? `Đã thanh toán${order.paidAt ? ` · ${formatDate(order.paidAt)}` : ""}`
-                : "Chưa thanh toán"}
+                : order.paymentMethod === "COD"
+                  ? "Chưa thu tiền (COD)"
+                  : order.paymentMethod === "BANK_TRANSFER"
+                    ? "Chờ xác nhận chuyển khoản"
+                    : "Chưa thanh toán"}
             </span>
+            {order.paymentMethod && (
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400">
+                {order.paymentMethod === "COD"
+                  ? "COD"
+                  : order.paymentMethod === "BANK_TRANSFER"
+                    ? "VietQR"
+                    : "VNPay"}
+              </span>
+            )}
+            {!order.isPaid && order.paymentMethod === "BANK_TRANSFER" && (
+              <button
+                onClick={handleMarkPaid}
+                disabled={marking}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-sky-500 text-white hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+              >
+                {marking && <Loader2 size={11} className="animate-spin" />}
+                Xác nhận đã thanh toán
+              </button>
+            )}
           </div>
           <span className="text-lg font-bold text-slate-800 dark:text-[#e6e9ef]">
             {formatVnd(order.totalAmount)}

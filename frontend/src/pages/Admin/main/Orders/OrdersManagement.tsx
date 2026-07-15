@@ -95,6 +95,29 @@ export default function OrdersManagement() {
     }
   };
 
+  const handleMarkPaid = async (order: AdminOrder) => {
+    setUpdatingId(order.id);
+    try {
+      const res = await orderApi.adminMarkPaid(order.id);
+      setOrders((prev) => prev.map((o) => (o.id === order.id ? res.data : o)));
+      setViewingOrder((prev) =>
+        prev && prev.id === order.id ? res.data : prev,
+      );
+      AppAlert({
+        icon: "success",
+        title: res?.message || "Đã xác nhận thanh toán",
+      });
+    } catch (err) {
+      AppAlert({
+        icon: "error",
+        title:
+          (await getApiErrorMessage(err)) || "Không thể xác nhận thanh toán",
+      });
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const inputClass =
     "h-10 rounded-lg border bg-white dark:bg-[#161b26] px-3.5 text-sm text-slate-700 dark:text-[#e6e9ef] placeholder:text-slate-300 dark:placeholder:text-[#5a6478] outline-none transition-colors focus:ring-2 focus:ring-offset-0 border-slate-200 dark:border-[#30363d] focus:border-[#EF4444] focus:ring-[#EF4444]/20 w-full";
 
@@ -255,18 +278,22 @@ export default function OrdersManagement() {
                             disabled={updatingId === o.id}
                             className={`h-8 rounded-full border-none px-2.5 text-[11px] font-semibold outline-none cursor-pointer disabled:opacity-60 ${STATUS_STYLE[o.status]}`}
                           >
-                            {STATUS_SELECT_OPTIONS.map((s) => (
-                              <option
-                                key={s}
-                                value={s}
-                                disabled={s === "COMPLETED" && !o.isPaid}
-                              >
-                                {STATUS_LABEL[s]}
-                                {s === "COMPLETED" && !o.isPaid
-                                  ? " (chưa thanh toán)"
-                                  : ""}
-                              </option>
-                            ))}
+                            {STATUS_SELECT_OPTIONS.map((s) => {
+                              const blockedUnpaid =
+                                s === "COMPLETED" &&
+                                !o.isPaid &&
+                                o.paymentMethod !== "COD";
+                              return (
+                                <option
+                                  key={s}
+                                  value={s}
+                                  disabled={blockedUnpaid}
+                                >
+                                  {STATUS_LABEL[s]}
+                                  {blockedUnpaid ? " (chưa thanh toán)" : ""}
+                                </option>
+                              );
+                            })}
                           </select>
                           {updatingId === o.id && (
                             <Loader2
@@ -275,15 +302,41 @@ export default function OrdersManagement() {
                             />
                           )}
                         </div>
-                        <span
-                          className={`w-fit rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                            o.isPaid
-                              ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400"
-                              : "bg-slate-100 text-slate-400 dark:bg-white/5 dark:text-slate-400"
-                          }`}
-                        >
-                          {o.isPaid ? "Đã thanh toán" : "Chưa thanh toán"}
-                        </span>
+                        <div className="flex flex-wrap items-center gap-1">
+                          <span
+                            className={`w-fit rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                              o.isPaid
+                                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400"
+                                : "bg-slate-100 text-slate-400 dark:bg-white/5 dark:text-slate-400"
+                            }`}
+                          >
+                            {o.isPaid
+                              ? "Đã thanh toán"
+                              : o.paymentMethod === "COD"
+                                ? "Chưa thu tiền (COD)"
+                                : o.paymentMethod === "BANK_TRANSFER"
+                                  ? "Chờ xác nhận CK"
+                                  : "Chưa thanh toán"}
+                          </span>
+                          {o.paymentMethod && (
+                            <span className="w-fit rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400">
+                              {o.paymentMethod === "COD"
+                                ? "COD"
+                                : o.paymentMethod === "BANK_TRANSFER"
+                                  ? "VietQR"
+                                  : "VNPay"}
+                            </span>
+                          )}
+                          {!o.isPaid && o.paymentMethod === "BANK_TRANSFER" && (
+                            <button
+                              onClick={() => handleMarkPaid(o)}
+                              disabled={updatingId === o.id}
+                              className="w-fit rounded-full bg-sky-500 px-2 py-0.5 text-[10px] font-semibold text-white hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+                            >
+                              Xác nhận đã thanh toán
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
@@ -334,6 +387,7 @@ export default function OrdersManagement() {
         <OrderDetail
           order={viewingOrder}
           onClose={() => setViewingOrder(null)}
+          onMarkPaid={handleMarkPaid}
         />
       )}
     </div>

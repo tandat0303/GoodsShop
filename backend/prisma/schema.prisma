@@ -110,6 +110,8 @@ model Order {
 
   isPaid        Boolean     @default(false)
   paidAt        DateTime?
+  paymentMethod String?
+  paymentRef    String?
 
   totalAmount   Decimal     @default(0) @db.Decimal(12,2)
 

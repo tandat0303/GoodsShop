@@ -9,6 +9,7 @@ async function bootstrap() {
     origin: [
       'http://localhost:5173',
       'http://192.168.1.82:5173',
+      'https://thirsting-concur-celtic.ngrok-free.dev',
       'https://goods-shop-v1.vercel.app',
     ],
     credentials: true,
