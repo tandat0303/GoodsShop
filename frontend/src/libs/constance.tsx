@@ -19,7 +19,12 @@ export const PAGE_SIZE = 10;
 
 export const FEATURED_FETCH_SIZE = 100;
 
-export const NAV_ITEMS = [{ path: "/", label: "Trang chủ" }];
+export const CATALOG_FETCH_SIZE = 300;
+
+export const NAV_ITEMS = [
+  { path: "/", label: "Trang chủ" },
+  { path: "/products", label: "Sản phẩm" },
+];
 
 export const LINK_COLUMNS: { title: string; links: string[] }[] = [
   { title: "Công ty", links: ["Về chúng tôi", "Tuyển dụng", "Liên hệ"] },

@@ -17,6 +17,7 @@ import OrdersManagement from "./pages/Admin/main/Orders/OrdersManagement";
 import UserOrders from "./pages/User/Orders/UserOrders";
 import { CartProvider } from "./contexts/CartContext";
 import PaymentResult from "./pages/User/Orders/PaymentResult";
+import ProductPage from "./pages/User/Products/ProductPage";
 
 function CartLayout() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
           <Route element={<CartLayout />}>
             <Route element={<MainLayout />}>
               <Route path="/" element={<Home />} />
+              <Route path="/products" element={<ProductPage />} />
               <Route path="/cart" element={<UserOrders />} />
               <Route path="/payment/result" element={<PaymentResult />} />
             </Route>
